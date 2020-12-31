@@ -207,3 +207,8 @@ handle_el1_irq:
 err_hang: b err_hang
 "#, frame_size = FRAME_SIZE);
 
+
+fn handle_irq() {
+
+    let mut irq: u32 = 
+}

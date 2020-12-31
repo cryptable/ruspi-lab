@@ -12,3 +12,6 @@ Cargo.lock
 # Some typical home folders
 .idea
 venv
+
+# Kernel image
+kernel*.img

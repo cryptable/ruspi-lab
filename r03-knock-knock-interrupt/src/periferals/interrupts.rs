@@ -1,5 +1,7 @@
-use core::ptr;
+use core::ptr::read_volatile;
 use crate::periferals::memmap::MMIO_BASE;
+use crate::periferals::uart1::Uart1;
+use crate::tools::format_to;
 
 // Interrupts registers
 const TIMER_CR: *mut u32                = (MMIO_BASE + 0x00000000) as *mut u32;
@@ -71,10 +73,8 @@ const TIMER_LOCAL_IRQ_ROUT: *mut u32    = (MMIO_BASE + 0x00000024) as *mut u32;
 pub const FRAME_SIZE: u32               = 256;
 
 global_asm!(r#"
-#include "entry.h"
-
 .macro kernel_entry
-    sub sp, sp, {frame_size}
+    sub sp, sp, 256
     stp x0, x1, [sp, #16 * 0]
     stp x2, x3, [sp, #16 * 1]
     stp	x4, x5, [sp, #16 * 2]
@@ -110,7 +110,7 @@ global_asm!(r#"
     ldp	x26, x27, [sp, #16 * 13]
     ldp	x28, x29, [sp, #16 * 14]
     ldr	x30, [sp, #16 * 15]
-    add	sp, sp, {frame_size}
+    add	sp, sp, 256
     eret
 .endm
 
@@ -154,49 +154,49 @@ vectors:
 
 
 sync_invalid_el1t:
-    handle_invalid_entry  SYNC_INVALID_EL1t
+    handle_invalid_entry  1
 
 irq_invalid_el1t:
-    handle_invalid_entry  IRQ_INVALID_EL1t
+    handle_invalid_entry  2
 
 fiq_invalid_el1t:
-    handle_invalid_entry  FIQ_INVALID_EL1t
+    handle_invalid_entry  3
 
 error_invalid_el1t:
-    handle_invalid_entry  ERROR_INVALID_EL1t
+    handle_invalid_entry  4
 
 sync_invalid_el1h:
-    handle_invalid_entry  SYNC_INVALID_EL1h
+    handle_invalid_entry  5
 
 fiq_invalid_el1h:
-    handle_invalid_entry  FIQ_INVALID_EL1h
+    handle_invalid_entry  6
 
 error_invalid_el1h:
-    handle_invalid_entry  ERROR_INVALID_EL1h
+    handle_invalid_entry  7
 
 sync_invalid_el0_64:
-    handle_invalid_entry  SYNC_INVALID_EL0_64
+    handle_invalid_entry  8
 
 irq_invalid_el0_64:
-    handle_invalid_entry  IRQ_INVALID_EL0_64
+    handle_invalid_entry  9
 
 fiq_invalid_el0_64:
-    handle_invalid_entry  FIQ_INVALID_EL0_64
+    handle_invalid_entry  10
 
 error_invalid_el0_64:
-    handle_invalid_entry  ERROR_INVALID_EL0_64
+    handle_invalid_entry  11
 
 sync_invalid_el0_32:
-    handle_invalid_entry  SYNC_INVALID_EL0_32
+    handle_invalid_entry  12
 
 irq_invalid_el0_32:
-    handle_invalid_entry  IRQ_INVALID_EL0_32
+    handle_invalid_entry  13
 
 fiq_invalid_el0_32:
-    handle_invalid_entry  FIQ_INVALID_EL0_32
+    handle_invalid_entry  14
 
 error_invalid_el0_32:
-    handle_invalid_entry  ERROR_INVALID_EL0_32
+    handle_invalid_entry  15
 
 handle_el1_irq:
     kernel_entry
@@ -205,10 +205,52 @@ handle_el1_irq:
 
 .globl err_hang
 err_hang: b err_hang
-"#, frame_size = FRAME_SIZE);
+"#);
 
+#[cfg(feature="raspi3")]
+mod interrupt_regs {
+    use crate::periferals::memmap::MMIO_BASE;
+
+    pub const IRQ0_BASIC_PENDING: *mut u32           = (MMIO_BASE + 0x0000b200) as *mut u32;
+    pub const IRQ0_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b204) as *mut u32;
+    pub const IRQ0_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b208) as *mut u32;
+    pub const FIQ0_CONTROL: *mut u32                 = (MMIO_BASE + 0x0000b20C) as *mut u32;
+    pub const IRQ0_SET_C0: *mut u32                  = (MMIO_BASE + 0x0000b210) as *mut u32;
+    pub const IRQ0_SET_C1: *mut u32                  = (MMIO_BASE + 0x0000b214) as *mut u32;
+    pub const IRQ_SET_BASIC: *mut u32                = (MMIO_BASE + 0x0000b218) as *mut u32;
+    pub const IRQ0_CLR_C0: *mut u32                  = (MMIO_BASE + 0x0000b21C) as *mut u32;
+    pub const IRQ0_CLR_C1: *mut u32                  = (MMIO_BASE + 0x0000b220) as *mut u32;
+    pub const IRQ0_CLR_BASIC: *mut u32               = (MMIO_BASE + 0x0000b224) as *mut u32;
+}
+
+fn show_invalid_entry_message(kind: u32, esr: u64, address: u64) {
+    let mut buf = [0u8; 256];
+    let uart = Uart1::new();
+
+    let output = format_to::show(&mut buf,
+                                         format_args!("Exception: {}, ESR {:x?}, Address {:x?}\n", kind, esr, address)).unwrap();
+    uart.puts(output);
+}
+
+const AUX_IRQ: u32 = 1 << 29;
 
 fn handle_irq() {
 
-    let mut irq: u32 = 
+    unsafe {
+        let mut irq: u32 = read_volatile(interrupt_regs::IRQ0_PENDING0);
+        while irq != 0x00 {
+            if irq & AUX_IRQ == AUX_IRQ {
+                irq = irq & !AUX_IRQ;
+
+                while (read_volatile(interrupt_regs::IRQ0_PENDING0) & 4) == 4 {
+                    let mut buf = [0u8; 256];
+                    let uart = Uart1::new();
+                    let kar = uart.getc();
+                    let output = format_to::show(&mut buf,
+                                                 format_args!("Recv: {}\n", kar)).unwrap();
+                    uart.puts(output);
+                }
+            }
+        }
+    }
 }

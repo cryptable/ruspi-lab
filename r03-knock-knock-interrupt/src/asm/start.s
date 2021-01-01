@@ -16,6 +16,23 @@ _start:
     b       1b
 
 2:
+    ldr     x0, =0x30d00800 //SCTLR_EL1
+    msr     sctlr_el1, x0
+
+    ldr     x0, =(1 << 31)
+    msr     hcr_el2, x0
+
+    ldr     x0, =0x5b1
+    msr     scr_el3, x0
+
+    ldr     x0, =0x1c5
+    msr     spsr_el3, x0
+
+    adr     x0, 5f
+    msr     elr_el3, x0
+
+    eret
+5:
     ldr     x5, =_start
     mov     sp, x5
  

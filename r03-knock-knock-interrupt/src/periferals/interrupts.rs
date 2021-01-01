@@ -1,6 +1,7 @@
-use core::ptr::read_volatile;
+use core::ptr;
 use crate::periferals::memmap::MMIO_BASE;
-use crate::periferals::uart1::Uart1;
+use crate::periferals::uart1;
+use crate::periferals::uart1::AUX_MU_IIR;
 use crate::tools::format_to;
 
 // Interrupts registers
@@ -69,6 +70,86 @@ const INTRPT_FIQ_CORE_C3: *mut u32      = (MMIO_BASE + 0x0000007C) as *mut u32;
 const TIMER_LOCAL_CS: *mut u32          = (MMIO_BASE + 0x00000034) as *mut u32;
 const TIMER_LOCAL_IRQ_CLR: *mut u32     = (MMIO_BASE + 0x00000038) as *mut u32;
 const TIMER_LOCAL_IRQ_ROUT: *mut u32    = (MMIO_BASE + 0x00000024) as *mut u32;
+
+// ARMC Registers
+const IRQ0_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b200) as *mut u32;
+const IRQ0_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b204) as *mut u32;
+const IRQ0_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b208) as *mut u32;
+const IRQ0_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b210) as *mut u32;
+const IRQ0_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b214) as *mut u32;
+const IRQ0_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b218) as *mut u32;
+const IRQ0_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b220) as *mut u32;
+const IRQ0_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b224) as *mut u32;
+const IRQ0_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b228) as *mut u32;
+const IRQ0_STATUS0: *mut u32                 = (MMIO_BASE + 0x0000b230) as *mut u32;
+const IRQ0_STATUS1: *mut u32                 = (MMIO_BASE + 0x0000b234) as *mut u32;
+const IRQ0_STATUS2: *mut u32                 = (MMIO_BASE + 0x0000b238) as *mut u32;
+const IRQ1_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b240) as *mut u32;
+const IRQ1_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b244) as *mut u32;
+const IRQ1_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b248) as *mut u32;
+const IRQ1_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b250) as *mut u32;
+const IRQ1_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b254) as *mut u32;
+const IRQ1_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b258) as *mut u32;
+const IRQ1_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b260) as *mut u32;
+const IRQ1_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b264) as *mut u32;
+const IRQ1_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b268) as *mut u32;
+const IRQ2_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b280) as *mut u32;
+const IRQ2_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b284) as *mut u32;
+const IRQ2_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b288) as *mut u32;
+const IRQ2_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b290) as *mut u32;
+const IRQ2_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b294) as *mut u32;
+const IRQ2_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b298) as *mut u32;
+const IRQ2_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b2a0) as *mut u32;
+const IRQ2_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b2a4) as *mut u32;
+const IRQ2_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b2a8) as *mut u32;
+const IRQ3_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b2c0) as *mut u32;
+const IRQ3_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b2c4) as *mut u32;
+const IRQ3_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b2c8) as *mut u32;
+const IRQ3_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b2d0) as *mut u32;
+const IRQ3_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b2d4) as *mut u32;
+const IRQ3_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b2d8) as *mut u32;
+const IRQ3_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b2e0) as *mut u32;
+const IRQ3_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b2e4) as *mut u32;
+const IRQ3_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b2e8) as *mut u32;
+const FIQ0_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b300) as *mut u32;
+const FIQ0_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b304) as *mut u32;
+const FIQ0_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b308) as *mut u32;
+const FIQ0_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b310) as *mut u32;
+const FIQ0_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b314) as *mut u32;
+const FIQ0_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b318) as *mut u32;
+const FIQ0_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b320) as *mut u32;
+const FIQ0_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b324) as *mut u32;
+const FIQ0_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b328) as *mut u32;
+const FIQ1_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b340) as *mut u32;
+const FIQ1_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b344) as *mut u32;
+const FIQ1_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b348) as *mut u32;
+const FIQ1_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b350) as *mut u32;
+const FIQ1_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b354) as *mut u32;
+const FIQ1_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b358) as *mut u32;
+const FIQ1_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b360) as *mut u32;
+const FIQ1_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b364) as *mut u32;
+const FIQ1_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b368) as *mut u32;
+const FIQ2_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b380) as *mut u32;
+const FIQ2_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b384) as *mut u32;
+const FIQ2_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b388) as *mut u32;
+const FIQ2_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b390) as *mut u32;
+const FIQ2_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b394) as *mut u32;
+const FIQ2_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b398) as *mut u32;
+const FIQ2_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b3a0) as *mut u32;
+const FIQ2_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b3a4) as *mut u32;
+const FIQ2_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b3a8) as *mut u32;
+const FIQ3_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b3c0) as *mut u32;
+const FIQ3_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b3c4) as *mut u32;
+const FIQ3_PENDING2: *mut u32                = (MMIO_BASE + 0x0000b3c8) as *mut u32;
+const FIQ3_SET_EN_0: *mut u32                = (MMIO_BASE + 0x0000b3d0) as *mut u32;
+const FIQ3_SET_EN_1: *mut u32                = (MMIO_BASE + 0x0000b3d4) as *mut u32;
+const FIQ3_SET_EN_2: *mut u32                = (MMIO_BASE + 0x0000b3d8) as *mut u32;
+const FIQ3_CLR_EN_0: *mut u32                = (MMIO_BASE + 0x0000b3e0) as *mut u32;
+const FIQ3_CLR_EN_1: *mut u32                = (MMIO_BASE + 0x0000b3e4) as *mut u32;
+const FIQ3_CLR_EN_2: *mut u32                = (MMIO_BASE + 0x0000b3e8) as *mut u32;
+const SWIRQ_SET: *mut u32                    = (MMIO_BASE + 0x0000b3f0) as *mut u32;
+const SWIRQ_CLEAR: *mut u32                  = (MMIO_BASE + 0x0000b3f4) as *mut u32;
+
 
 pub const FRAME_SIZE: u32               = 256;
 
@@ -205,50 +286,61 @@ handle_el1_irq:
 
 .globl err_hang
 err_hang: b err_hang
+
+.globl irq_init_vectors
+irq_init_vectors:
+    adr x0, vectors
+    msr vbar_el1, x0
+    ret
+
+.globl irq_enable
+irq_enable:
+    msr daifclr, #2
+    ret
+
+.globl irq_disable
+irq_disable:
+    msr daifset, #2
+    ret
 "#);
 
-#[cfg(feature="raspi3")]
-mod interrupt_regs {
-    use crate::periferals::memmap::MMIO_BASE;
-
-    pub const IRQ0_BASIC_PENDING: *mut u32           = (MMIO_BASE + 0x0000b200) as *mut u32;
-    pub const IRQ0_PENDING0: *mut u32                = (MMIO_BASE + 0x0000b204) as *mut u32;
-    pub const IRQ0_PENDING1: *mut u32                = (MMIO_BASE + 0x0000b208) as *mut u32;
-    pub const FIQ0_CONTROL: *mut u32                 = (MMIO_BASE + 0x0000b20C) as *mut u32;
-    pub const IRQ0_SET_C0: *mut u32                  = (MMIO_BASE + 0x0000b210) as *mut u32;
-    pub const IRQ0_SET_C1: *mut u32                  = (MMIO_BASE + 0x0000b214) as *mut u32;
-    pub const IRQ_SET_BASIC: *mut u32                = (MMIO_BASE + 0x0000b218) as *mut u32;
-    pub const IRQ0_CLR_C0: *mut u32                  = (MMIO_BASE + 0x0000b21C) as *mut u32;
-    pub const IRQ0_CLR_C1: *mut u32                  = (MMIO_BASE + 0x0000b220) as *mut u32;
-    pub const IRQ0_CLR_BASIC: *mut u32               = (MMIO_BASE + 0x0000b224) as *mut u32;
+extern {
+    pub fn irq_init_vectors();
+    pub fn irq_enable();
+    pub fn irq_disable();
 }
 
-fn show_invalid_entry_message(kind: u32, esr: u64, address: u64) {
+const AUX_IRQ: u32 = 1<<29;
+
+pub fn enable_interrupt_controller() {
+    unsafe {
+        ptr::write_volatile(IRQ0_PENDING0, AUX_IRQ);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn show_invalid_entry_message(kind: u32, esr: u64, address: u64) {
     let mut buf = [0u8; 256];
-    let uart = Uart1::new();
 
     let output = format_to::show(&mut buf,
-                                         format_args!("Exception: {}, ESR {:x?}, Address {:x?}\n", kind, esr, address)).unwrap();
-    uart.puts(output);
+        format_args!("Exception: type:{}, ESR:{:x?}, Address:{:x?} \n", kind, esr, address)).unwrap();
+    uart1::puts(output);
 }
 
-const AUX_IRQ: u32 = 1 << 29;
-
-fn handle_irq() {
-
+#[no_mangle]
+pub extern "C" fn handle_irq() {
     unsafe {
-        let mut irq: u32 = read_volatile(interrupt_regs::IRQ0_PENDING0);
-        while irq != 0x00 {
-            if irq & AUX_IRQ == AUX_IRQ {
+        uart1::puts("enter\n");
+        let mut irq = ptr::read_volatile(IRQ0_PENDING0);
+        while irq != 0 {
+            if (irq & AUX_IRQ) == AUX_IRQ {
                 irq = irq & !AUX_IRQ;
-
-                while (read_volatile(interrupt_regs::IRQ0_PENDING0) & 4) == 4 {
+                while (ptr::read_volatile(AUX_MU_IIR) & 4) == 4 {
                     let mut buf = [0u8; 256];
-                    let uart = Uart1::new();
-                    let kar = uart.getc();
+                    let kar = uart1::getc();
                     let output = format_to::show(&mut buf,
                                                  format_args!("Recv: {}\n", kar)).unwrap();
-                    uart.puts(output);
+                    uart1::puts(output);
                 }
             }
         }

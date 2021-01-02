@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use core::ptr;
 use crate::periferals::utils;
 use crate::periferals::memmap::MMIO_BASE;

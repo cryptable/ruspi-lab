@@ -184,6 +184,13 @@ Remote debugging using localhost:1234
 
 Looks normal, but cool anyway.
 
+Some useful commands:
+'info registers': display all registers
+'info line': display current line of Rust code with the address in assembly
+'disas <begin address>, <end address>': disassemble the code from begin to end address. Nice to us in relation with 'info line', because a line in Rust will be multiple lines in assembly.
+'si': step an assembly line
+
+
 
 References
 ----------
@@ -195,4 +202,4 @@ References
 - https://plugins.jetbrains.com/plugin/10428-qemu-for-clion
 - (LOWLEVELDEV) https://www.youtube.com/channel/UCRWXAQsN5S3FPDHY4Ttq1Xg
 - (ARMSTUB) https://github.com/raspberrypi/tools
-
+- (INLINE) http://llvm.org/docs/LangRef.html#inline-assembler-expressions

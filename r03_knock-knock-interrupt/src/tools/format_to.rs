@@ -1,5 +1,3 @@
-#![no_std]
-
 use core::cmp::min;
 use core::fmt;
 
@@ -50,6 +48,7 @@ pub fn show<'a>(buffer: &'a mut [u8], args: fmt::Arguments) -> Result<&'a str, f
     w.as_str().ok_or(fmt::Error)
 }
 
+#[cfg(test)]
 pub fn test() {
     let mut buf = [0u8; 64];
     let _s: &str = show(

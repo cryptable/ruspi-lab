@@ -1,4 +1,4 @@
-global_asm!(include_str!("asm/asmutils.s"));
+global_asm!(include_str!("asm/asm_utils.s"));
 
 extern {
     fn asm_delay(t: isize);

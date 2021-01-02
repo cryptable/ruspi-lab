@@ -1,5 +1,5 @@
 [package]
-name = "r03-knock-knock-interrupt"
+name = "r03_knock-knock-interrupt"
 version = "0.1.0"
 authors = ["David (DDT) Tillemans <david.tillemans@cryptable.org>"]
 edition = "2018"

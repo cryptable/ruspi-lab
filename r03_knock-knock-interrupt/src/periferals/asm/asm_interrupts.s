@@ -44,7 +44,7 @@
     kernel_entry
     mov	x0, #\type
     bl	handle_general_irq
-    kernel_entry
+    kernel_exit
 .endm
 
 .macro	ventry	label

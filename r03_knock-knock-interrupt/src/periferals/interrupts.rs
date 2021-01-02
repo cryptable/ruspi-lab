@@ -217,7 +217,6 @@ fn get_elr_el1() -> u64 {
 
 #[no_mangle]
 pub extern "C" fn handle_general_irq(kind: u32) {
-    uart1::puts("Begin irq\n");
     if kind != 6 {
         show_invalid_entry_message(kind, get_esr_el1(), get_elr_el1())
     }
@@ -236,5 +235,4 @@ pub extern "C" fn handle_general_irq(kind: u32) {
             }
         }
     }
-    uart1::puts("End irq\n");
 }

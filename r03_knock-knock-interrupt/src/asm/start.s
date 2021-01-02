@@ -38,14 +38,14 @@ start_el2:
     msr     sp_el1, x5      // Setup stack EL1
     ldr     x0, =0x50330000 // Permit SVE, SIMD and disable trap of SVE registers for EL0 and EL1 (ZEN)
     msr     cpacr_el1, x0
-    mrs     x0, cnthctl_el2 // Setup CNTP for EL1, disabl
+    mrs     x0, cnthctl_el2 // Setup CNTP for EL1
     orr     x0, x0, #3      // Disable traps for EL0
     msr     cnthctl_el2, x0
     msr     cntvoff_el2, xzr // Zeroize the EL2 offset
     mov     x0, #(1 << 31)  // Support Aarch64 and Aarch32 in EL1/EL0
     orr     x0, x0, #(1 << 1) // set Set/Way Invalidation Override , set/way instruction cleans data cache
     msr     hcr_el2, x0     // Write data into hcr_el2
-    mov     x0, #0x3c5        // Prepare SPSR to swith to EL1 (4 at the end)
+    mov     x0, #0x3c5        // Prepare SPSR to with to EL1 (4 at the end)
     msr     spsr_el2, x0
     adr     x0, start_el1
     msr     elr_el2, x0

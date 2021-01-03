@@ -188,17 +188,6 @@ pub fn enable_interrupt_controller(kind: u32) {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn show_invalid_entry_message(kind: u32, esr: u64, address: u64) {
-    let mut buf = [0u8; 256];
-
-    let output = format_to::show(&mut buf,
-        format_args!("Exception: type:{}, ESR:{:x?}, Address:{:x?} \n", kind, esr, address)).unwrap();
-    uart1::puts(output);
-
-    loop {}
-}
-
 fn get_esr_el1() -> u64 {
     unsafe {
         let mut result: u64;
@@ -213,6 +202,17 @@ fn get_elr_el1() -> u64 {
         asm!("mrs {}, elr_el1", out(reg)result);
         result
     }
+}
+
+#[no_mangle]
+pub extern "C" fn show_invalid_entry_message(kind: u32, esr: u64, address: u64) {
+    let mut buf = [0u8; 256];
+
+    let output = format_to::show(&mut buf,
+                                 format_args!("Exception: type:{}, ESR:{:x?}, Address:{:x?} \n", kind, esr, address)).unwrap();
+    uart1::puts(output);
+
+    loop {}
 }
 
 #[no_mangle]

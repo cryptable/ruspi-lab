@@ -16,8 +16,6 @@ hang:
     b       hang
 
 start_el3:
-    ldr     x5, =_start     // Setup stack before our code
-
     mrs     x0, CurrentEL   // Get current Exception level
     and     x0, x0, #12     // only bits of EL information
     cmp     x0, #12         // Running in EL3?
@@ -35,8 +33,7 @@ start_el2:
     cmp     x0, #4          // Running in EL1?
     beq     start_el1       // Continue to EL1
     // where in EL2, so prepare to enter EL1
-    msr     sp_el1, x5      // Setup stack EL1
-    ldr     x0, =0x50330000 // Permit SVE, SIMD and disable trap of SVE registers for EL0 and EL1 (ZEN)
+    ldr     x0, =0x330000 // Permit SVE, SIMD and disable trap of SVE registers for EL0 and EL1 (ZEN)
     msr     cpacr_el1, x0
     mrs     x0, cnthctl_el2 // Setup CNTP for EL1
     orr     x0, x0, #3      // Disable traps for EL0
@@ -53,9 +50,9 @@ start_el2:
 
 start_el1:
     // where in EL1, so prepare to enter our OS code
-    mov     sp, x5
- 
     // clear bss
+    ldr     x5, =_start     // Setup stack before our code
+    mov     sp, x5
     ldr     x5, =__bss_start
     ldr     w6, =__bss_size
 zeroize:

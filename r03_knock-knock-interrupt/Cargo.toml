@@ -10,5 +10,6 @@ edition = "2018"
 cc = "1.0"
 
 [features]
+default = ["raspi4"]
 raspi3 = []
 raspi4 = []

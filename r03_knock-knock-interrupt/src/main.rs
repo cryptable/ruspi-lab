@@ -1,8 +1,7 @@
 #![no_std]
 #![no_main]
-#![feature(global_asm)]
-#![feature(asm)]
 use core::format_args;
+use core::arch::global_asm;
 
 global_asm!(include_str!("asm/start.s"));
 

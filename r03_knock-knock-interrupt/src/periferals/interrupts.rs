@@ -4,6 +4,8 @@ use crate::periferals::memmap::MMIO_BASE;
 use crate::periferals::uart1;
 use crate::periferals::uart1::AUX_MU_IIR;
 use crate::tools::format_to;
+use core::arch::global_asm;
+use core::arch::asm;
 
 global_asm!(include_str!("asm/asm_interrupts.s"));
 

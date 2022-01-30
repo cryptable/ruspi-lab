@@ -27,7 +27,7 @@ Exercise:
 Exception Levels (EL) of ARM Aarch64
 ------------------------------------
 
-When following the documentation, ARM  on the Raspbery Pi has 4 Exception Levels from 0 to 3, where 0 is the lowest privileged level AKA the User level and the 3 is the highest exception level, which is the Firmware level.
+When following the documentation, ARM on the Raspbery Pi has 4 Exception Levels from 0 to 3, where 0 is the lowest privileged level AKA the User level and the 3 is the highest exception level, which is the Firmware level.
 
 +-----+------------------+
 |Level| name             |
@@ -38,7 +38,7 @@ When following the documentation, ARM  on the Raspbery Pi has 4 Exception Levels
 |  3  | Firmware level   |
 +-----+------------------+
 
-The Raspberry Pi 3 and 4 they will start in Exception Level (EL) 2, while the QEMU starts in EL 3. That the Raspberry Pi can't start in EL3 looks normal, but to my surprise it can! You need to overwrite the armstub with some new assembly code. The original cna be found on the github page of the Raspberry Pi foundation under the tools directory. There you have to read the assembly code and you find out it sets the Pi in EL2 and configures the GIC controller (only Pi 4).
+The Raspberry Pi 3 and 4 they will start in Exception Level (EL) 2, while the QEMU starts in EL 3. That the Raspberry Pi can't start in EL3 looks normal, but to my surprise it can! You need to overwrite the armstub with some new assembly code. The original can be found on the github page of the Raspberry Pi foundation under the tools directory. There you have to read the assembly code and you find out it sets the Pi in EL2 and configures the GIC controller (only Pi 4).
 I removed a lot of code and only kept the EL3 configuration. The nice thing is the configuration of the ACTLR register, which is an implementation defined control register and undocumented.
 
 ```asm
@@ -125,7 +125,7 @@ kernel_entry32:
   .word 0x0
 ```
 
-I created a tiny new assembler project with a shell-script to build the *armstub-new.bin* file. This file must be copied on your sd card. Last thing we need to do is tell the boot manager for Raspberry Pi to load the armstub-new.bin buy changing the *config.txt* of the Raspberry Pi. We add 'armstub=armstub-new.bin'
+I created a tiny new assembler project with a shell-script to build the *armstub-new.bin* file. This file must be copied on your sd card. Last thing we need to do is tell the boot manager for Raspberry Pi to load the armstub-new.bin by changing the *config.txt* of the Raspberry Pi. We add 'armstub=armstub-new.bin'
 
 ```
 arm_64bit=1
